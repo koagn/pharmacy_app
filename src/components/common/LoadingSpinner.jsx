@@ -1,35 +1,39 @@
+// File: src/components/common/LoadingSpinner.jsx
 import React from 'react';
-import spinnerImage from '../../image_logo/loading-icon.png'; // Use your renamed image
 
-const LoadingSpinner = (size = 60 ) => {
+const LoadingSpinner = () => {
   const styles = {
     container: {
       display: 'flex',
-      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #f5f7fa 0%, #e8f0fe 100%)',
-      fontFamily: 'Arial, sans-serif',
     },
     spinner: {
-      width: '80px',
-      height: '80px',
-      marginBottom: '20px',
-    },
-    message: {
-      fontSize: '1.2rem',
-      color: '#2c3e50',
-      fontWeight: '500',
+      width: '60px',
+      height: '60px',
+      border: '6px solid #f3f3f3',
+      borderTop: '6px solid #2ecc71',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite',
     }
   };
 
+  const spinnerAnimation = `
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  `;
+
   return (
-    <div style={styles.container}>
-      <img src={spinnerImage} alt="Loading..." style={styles.spinner} />
-      <p style={styles.message}>Loading.........</p>
-    </div>
-    
+    <>
+      <style>{spinnerAnimation}</style>
+      <div style={styles.container}>
+        <div style={styles.spinner}></div>
+      </div>
+    </>
   );
 };
 

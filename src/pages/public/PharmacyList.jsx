@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePharmacy } from '../../context/PharmacyContext'; // Import the hook
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import doctor2 from '../../image_logo/doctor2.png';
 import doctor3 from '../../image_logo/doctor3.png';
 
@@ -198,14 +199,14 @@ const PharmacyList = () => {
             <p style={styles.subtitle}>Find the nearest pharmacy to you</p>
             
             <div style={styles.statsBar}>
-              <span style={styles.statBadge}>🏥 {totalPharmacies} Pharmacies</span>
-              <span style={styles.statBadge}>⏰ {onDutyCount} Open 24/7</span>
+              <span style={styles.statBadge}><FontAwesomeIcon icon="hospital" /> {totalPharmacies} Pharmacies</span>
+              <span style={styles.statBadge}><FontAwesomeIcon icon="clock" /> {onDutyCount} Open 24/7</span>
             </div>
 
             <div style={styles.searchContainer}>
               <input
                 type="text"
-                placeholder="🔍 Search by name or location..."
+                placeholder="Search by name or location..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={styles.searchInput}
@@ -236,18 +237,18 @@ const PharmacyList = () => {
                 </div>
                 
                 <div style={styles.area}>
-                  <span>📍</span> {pharmacy.area}
+                  <FontAwesomeIcon icon="map-marker-alt" /> {pharmacy.area}
                 </div>
                 
                 <div style={styles.info}>
                   <div style={styles.infoItem}>
-                    <span>📞</span> {pharmacy.phone}
+                    <FontAwesomeIcon icon="phone" /> {pharmacy.phone}
                   </div>
                   <div style={styles.infoItem}>
-                    <span>🕒</span> {pharmacy.hours || 'Hours not specified'}
+                    <FontAwesomeIcon icon="clock" /> {pharmacy.hours || 'Hours not specified'}
                   </div>
                   <div style={styles.infoItem}>
-                    <span>👨‍⚕️</span> {pharmacy.manager || 'Pharmacist'}
+                    <FontAwesomeIcon icon="user-md" /> {pharmacy.manager || 'Pharmacist'}
                   </div>
                 </div>
                 

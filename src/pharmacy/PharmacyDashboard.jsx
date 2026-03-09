@@ -117,7 +117,7 @@ const PharmacyDashboard = () => {
     alert('Opening point of sale...');
   };
 
-  // Format currency
+  
   const formatCurrency = (amount) => amount.toLocaleString() + ' FCFA';
 
   // ===== STYLES DEFINED HERE - BEFORE ANY CONDITIONAL RETURN =====
@@ -582,7 +582,7 @@ const PharmacyDashboard = () => {
   return (
     <div style={styles.container}>
       {/* Back Button */}
-      <button onClick={() => navigate('/')} style={styles.backButton}>
+      <button onClick={() => navigate('/pharmacies')} style={styles.backButton}>
         <FontAwesomeIcon icon="arrow-left" /> Back to All Pharmacies
       </button>
 
