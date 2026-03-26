@@ -1,5 +1,6 @@
 // File: src/components/common/LoadingSpinner.jsx
 import React from 'react';
+import loadingIcon from '../../image_logo/loading-icon.png';
 
 const LoadingSpinner = () => {
   const styles = {
@@ -11,11 +12,11 @@ const LoadingSpinner = () => {
       background: 'linear-gradient(135deg, #f5f7fa 0%, #e8f0fe 100%)',
     },
     spinner: {
-      width: '60px',
-      height: '60px',
-      border: '6px solid #f3f3f3',
-      borderTop: '6px solid #2ecc71',
-      borderRadius: '50%',
+      // responsive image sizing
+      width: '10vw',
+      height: '10vw',
+      maxWidth: '120px',
+      maxHeight: '120px',
       animation: 'spin 1s linear infinite',
     }
   };
@@ -31,7 +32,11 @@ const LoadingSpinner = () => {
     <>
       <style>{spinnerAnimation}</style>
       <div style={styles.container}>
-        <div style={styles.spinner}></div>
+        <img
+          src={loadingIcon}
+          alt="Loading..."
+          style={styles.spinner}
+        />
       </div>
     </>
   );

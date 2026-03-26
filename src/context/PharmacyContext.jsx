@@ -45,13 +45,28 @@ export const pharmacies = [
 
 export const PharmacyProvider = ({ children }) => {
   const [selectedPharmacy, setSelectedPharmacy] = useState(null);
-  const [pharmacyList] = useState(pharmacies);
+  const [pharmacyList, setPharmacyList] = useState(pharmacies);
+
+  const [pharmacyInventories, setPharmacyInventories] = useState({
+    1: ['Paracetamol', 'Amoxicillin', 'Ibuprofen'],
+    2: ['Cough Syrup', 'Amoxicillin', 'Vitamin C'],
+    3: ['Ibuprofen', 'Aspirin', 'Omeprazole'],
+    4: ['Metformin', 'Insulin', 'Paracetamol'],
+    5: ['Omeprazole', 'Cetirizine', 'Paracetamol'],
+    6: ['Vitamin C', 'Ibuprofen', 'Cough Syrup'],
+    7: ['Aspirin', 'Amoxicillin', 'Vitamin C'],
+    8: ['Cetirizine', 'Paracetamol', 'Metformin'],
+    // add more pharmacy-specific lists as needed
+  });
 
   return (
     <PharmacyContext.Provider value={{ 
       pharmacies: pharmacyList, 
+      setPharmacies: setPharmacyList,
       selectedPharmacy, 
-      setSelectedPharmacy 
+      setSelectedPharmacy,
+      pharmacyInventories,
+      setPharmacyInventories
     }}>
       {children}
     </PharmacyContext.Provider>

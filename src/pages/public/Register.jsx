@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { usePharmacy } from '../../context/PharmacyContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import api from '../../services/api';
 
@@ -14,12 +15,15 @@ const Register = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [role, setRole] = useState('patient');
+    const [pharmacyId, setPharmacyId] = useState('');
     const [phone, setPhone] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const { pharmacies } = usePharmacy();
     
-    const { register: authRegister } = useAuth();
+    const { setAuthData } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -27,6 +31,8 @@ const Register = () => {
         setError('');
         setSuccess('');
         setLoading(true);
+        
+        const startTime = Date.now();
         
         // Validation
         if (password !== confirmPassword) {
@@ -41,13 +47,18 @@ const Register = () => {
             return;
         }
         
+        // Pharmacist can register without selecting an existing pharmacy
+        // (optional: they can select one, or create a new pharmacy separately).
+        
         try {
             const userData = {
                 name,
                 email,
                 password,
                 role,
-                phone
+                phone,
+                // set pharmacy assignment only when explicitly chosen
+                ...(role === 'pharmacist' && pharmacyId ? { pharmacyId } : {})
             };
             
             console.log('Registering user:', userData);
@@ -60,17 +71,20 @@ const Register = () => {
                 setSuccess('Registration successful! Redirecting...');
                 
                 // Auto login after registration
-                authRegister(response.user, response.token);
+                setAuthData(response.user, response.token);
+                
+                // Ensure loading shows for at least 1.5 seconds
+                const elapsed = Date.now() - startTime;
+                const remaining = 1500 - elapsed;
                 
                 setTimeout(() => {
-                    if (role === 'admin') {
-                        navigate('/admin');
-                    } else if (role === 'pharmacist') {
-                        navigate('/pharmacy-dashboard');
+                    setLoading(false);
+                    if (role === 'pharmacist') {
+                        navigate('/inventory');
                     } else {
-                        navigate('/pharmacies');
+                        navigate('/');
                     }
-                }, 2000);
+                }, remaining > 0 ? remaining : 0);
             } else {
                 setError(response.message || 'Registration failed');
                 setLoading(false);
@@ -378,6 +392,23 @@ const Register = () => {
                                 style={styles.input}
                             />
                         </div>
+
+                        {role === 'pharmacist' && (
+                            <div style={styles.inputGroup}>
+                                <label style={styles.label}>Linked Pharmacy (optional)</label>
+                                <select
+                                    name="pharmacyId"
+                                    value={pharmacyId}
+                                    onChange={(e) => setPharmacyId(e.target.value)}
+                                    style={styles.select}
+                                >
+                                    <option value="">-- none / create new later --</option>
+                                    {pharmacies.map(p => (
+                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
 
                         <select
                             value={role}

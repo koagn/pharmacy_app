@@ -10,11 +10,10 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [role, setRole] = useState('patient');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     
-    const { login } = useAuth();
+    const { setAuthData } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -22,7 +21,9 @@ const Login = () => {
         setError('');
         setLoading(true);
         
-        console.log('Attempting login with:', { email, role });
+        const startTime = Date.now();
+        
+        console.log('Attempting login with:', { email });
         
         try {
             // Call the actual backend API
@@ -31,29 +32,27 @@ const Login = () => {
             console.log('Login API response:', response);
             
             if (response.success) {
-                // Check if role matches (optional - you can remove this if backend doesn't check role)
-                if (response.user.role !== role) {
-                    setError(`This account is registered as ${response.user.role}, not ${role}`);
-                    setLoading(false);
-                    return;
-                }
-                
-                // Update auth context with user data and token (no localStorage)
-                login(response.user, response.token);
+                // Update auth context with user data and token
+                setAuthData(response.user, response.token);
                 
                 // Show success message
                 setError('');
                 
-                // Navigate based on role
+                // Ensure loading shows for at least 1.5 seconds
+                const elapsed = Date.now() - startTime;
+                const remaining = 1500 - elapsed;
+                
                 setTimeout(() => {
-                    if (response.user.role === 'admin') {
-                        navigate('/admin');
-                    } else if (response.user.role === 'pharmacist') {
-                        navigate('/pharmacy-dashboard');
+                    setLoading(false);
+                    // Navigate based on role (only pharmacist or patient now)
+                    if (response.user.role === 'pharmacist') {
+                        // send pharmacists straight to their inventory management
+                        navigate('/inventory');
                     } else {
-                        navigate('/pharmacies');
+                        // patient or any other fall through to home
+                        navigate('/');
                     }
-                }, 500);
+                }, remaining > 0 ? remaining : 0);
             } else {
                 setError(response.message || 'Invalid email or password');
                 setLoading(false);
@@ -298,20 +297,10 @@ const Login = () => {
                                     onClick={togglePasswordVisibility}
                                     style={styles.toggleButton}
                                 >
-                                    {showPassword ? "👁️" : "👁️‍🗨️"}
+                                    {showPassword ? "" : ""}
                                 </button>
                             </div>
                         </div>
-
-                        <select
-                            value={role}
-                            onChange={(e) => setRole(e.target.value)}
-                            style={styles.select}
-                        >
-                            <option value="patient">Patient</option>
-                            <option value="pharmacist">Pharmacist</option>
-                            <option value="admin">Administrator</option>
-                        </select>
 
                         <button
                             type="submit"

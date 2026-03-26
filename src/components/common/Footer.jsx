@@ -101,7 +101,7 @@ const Footer = () => {
         <div style={styles.section}>
           <h3 style={styles.title}>Contact Us</h3>
           <div style={styles.contactItem}>
-            <span>📍</span>
+            <span></span>
             <span>Yaoundé, Cameroon</span>
           </div>
           <div style={styles.contactItem}>

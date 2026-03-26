@@ -94,40 +94,40 @@ const AdminNavbar = () => {
           style={styles.link} 
           onClick={() => navigate('/admin')}
         >
-          📊 Dashboard
+           Dashboard
         </span>
         
         <span 
           style={styles.link} 
           onClick={() => navigate('/admin/pharmacies')}
         >
-          🏥 Pharmacies
+           Pharmacies
         </span>
         
         <span 
           style={styles.link} 
           onClick={() => navigate('/admin/inventory')}
         >
-          📦 Inventory
+           Inventory
         </span>
         
         <span 
           style={styles.link} 
           onClick={() => navigate('/admin/users')}
         >
-          👥 Users
+           Users
         </span>
         
         <span 
           style={styles.link} 
           onClick={() => navigate('/admin/reports')}
         >
-          📊 Reports
+           Reports
         </span>
 
         {/* User Info */}
         <div style={styles.userInfo}>
-          <span>👤 Admin: {user?.name || 'Admin'}</span>
+          <span>Admin: {user?.name || 'Admin'}</span>
           <button style={styles.logoutBtn} onClick={logout}>
             Logout
           </button>

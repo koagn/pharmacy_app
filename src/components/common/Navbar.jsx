@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import pharmacyLogo from '../../image_logo/pharmacy_logo.png';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -48,6 +49,18 @@ const Navbar = () => {
       display: 'flex',
       alignItems: 'center',
       gap: '10px'
+    },
+    avatar: {
+      width: '40px',
+      height: '40px',
+      borderRadius: '50%',
+      backgroundColor: '#2ecc71',
+      color: 'white',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontWeight: 'bold',
+      fontSize: '1.2rem'
     }
   };
 
@@ -59,7 +72,8 @@ const Navbar = () => {
   return (
     <nav style={styles.navbar}>
       <div style={styles.logo} onClick={() => navigate('/')}>
-        💊 PharmaLocator
+        <img src={pharmacyLogo} alt="Pharmacy Logo" style={{ height: '50px', width: 'auto', marginRight: '10px' }} />
+        PharmaLocator
       </div>
 
       <div style={styles.navLinks}>
@@ -68,14 +82,15 @@ const Navbar = () => {
         
         {isAuthenticated ? (
           <div style={styles.userInfo}>
-            <span>👤 {user?.name}</span>
-            {user?.role === 'admin' && (
-              <span style={styles.link} onClick={() => navigate('/admin')}>Admin</span>
-            )}
             {user?.role === 'pharmacist' && (
-              <span style={styles.link} onClick={() => navigate('/pharmacy-dashboard')}>Dashboard</span>
+              <>
+                <span style={styles.link} onClick={() => navigate('/inventory')}>Inventory</span>
+              </>
             )}
             <button style={styles.button} onClick={handleLogout}>Logout</button>
+            <div style={styles.avatar}>
+              {user?.name ? user.name.split(' ').map(word => word[0]).join('').toUpperCase() : 'U'}
+            </div>
           </div>
         ) : (
           <>

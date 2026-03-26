@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { PharmacyProvider } from './context/PharmacyContext';
@@ -12,20 +12,26 @@ import Login from './pages/public/Login';
 import Register from './pages/public/Register';
 import PharmacyList from './pages/public/PharmacyList';
 import PharmacyDashboard from './pharmacy/PharmacyDashboard';
-
+import LoadingSpinner from './components/common/LoadingSpinner';
 // Pharmacy Pages
+import InventoryManagement from './pages/admin/InventoryManagement';
+import CreatePharmacy from './pharmacy/createPharmacy';
 
 
 // Admin Pages
-import AdminDashboard from './pages/admin/AdminDashboard';
-import ManagePharmacies from './pages/admin/ManagePharmacies';
-import ManageUsers from './pages/admin/ManageUsers';
-import SystemReports from './pages/admin/SystemReports';
-import InventoryManagement from './pages/admin/InventoryManagement';
+// (removed - admin role no longer supported)
 
 // Create a wrapper component to check current route
 const AppContent = () => {
   const location = useLocation();
+  const [navLoading, setNavLoading] = useState(false);
+
+  // show spinner whenever location changes
+  useEffect(() => {
+    setNavLoading(true);
+    const timer = setTimeout(() => setNavLoading(false), 200); // reduced from 500
+    return () => clearTimeout(timer);
+  }, [location]);
   
   // Don't show footer on login or register pages
   const hideFooterPages = ['/login', '/register'];
@@ -34,6 +40,8 @@ const AppContent = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Navbar />
+      {/* spinner overlay on navigation */}
+      {navLoading && <LoadingSpinner />}
       <div style={{ flex: 1 }}>
         <Routes>
           {/* Public Routes - Anyone can access */}
@@ -48,38 +56,21 @@ const AppContent = () => {
             <ProtectedRoute allowedRoles={['pharmacist']}>
               <PharmacyDashboard />
             </ProtectedRoute>
-          } />
-
-          {/* ADMIN ONLY ROUTES - Only admin can access these */}
-          <Route path="/admin" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/pharmacies" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <ManagePharmacies />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/users" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <ManageUsers />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/reports" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <SystemReports />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/inventory" element={
-            <ProtectedRoute allowedRoles={['admin']}>
+          } />          
+          {/* Inventory management (pharmacist-only) */}
+          <Route path="/inventory" element={
+            <ProtectedRoute allowedRoles={["pharmacist"]}>
               <InventoryManagement />
             </ProtectedRoute>
           } />
+          {/* creatae pharmacy route */}
+          <Route path="/create-pharmacy" element={
+    <ProtectedRoute allowedRoles={['pharmacist']}>
+        <CreatePharmacy />
+    </ProtectedRoute>
+} />
+
+          {/* Admin pages removed – role no longer available */}
         </Routes>
       </div>
       {/* Footer shows on all pages EXCEPT login and register */}

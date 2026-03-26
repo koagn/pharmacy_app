@@ -25,16 +25,19 @@ const AdminDashboard = () => {
   const styles = {
     container: {
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'radial-gradient(circle at top, rgba(255,255,255,0.6), rgba(255,255,255,0)), linear-gradient(135deg, #3a8dff 0%, #0fccb5 100%)',
       padding: '30px',
-      fontFamily: 'Arial, sans-serif'
+      fontFamily: 'Arial, sans-serif',
+      color: '#1b1f3b'
     },
     header: {
-      background: 'white',
+      background: 'rgba(255,255,255,0.92)',
       padding: '30px',
       borderRadius: '15px',
       marginBottom: '30px',
-      boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+      boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+      border: '1px solid rgba(255,255,255,0.5)',
+      backdropFilter: 'blur(10px)'
     },
     headerTitle: {
       fontSize: '2.5rem',
@@ -53,13 +56,15 @@ const AdminDashboard = () => {
       marginBottom: '30px'
     },
     statCard: {
-      background: 'white',
+      background: 'rgba(255,255,255,0.95)',
       padding: '25px',
-      borderRadius: '15px',
-      boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+      borderRadius: '18px',
+      boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
       display: 'flex',
       alignItems: 'center',
-      gap: '20px'
+      gap: '20px',
+      border: '1px solid rgba(0,0,0,0.08)',
+      transition: 'transform 0.2s ease, box-shadow 0.2s ease'
     },
     statIcon: {
       fontSize: '2.5rem',
@@ -91,24 +96,30 @@ const AdminDashboard = () => {
     },
     tab: {
       padding: '12px 20px',
-      border: 'none',
-      background: 'transparent',
-      borderRadius: '8px',
+      border: '1px solid rgba(255,255,255,0.55)',
+      background: 'rgba(255,255,255,0.4)',
+      borderRadius: '12px',
       cursor: 'pointer',
       fontSize: '1rem',
       flex: 1,
-      minWidth: '100px'
+      minWidth: '120px',
+      transition: 'transform 0.2s ease, background 0.2s ease',
+      color: '#1b1f3b',
+      backdropFilter: 'blur(4px)'
     },
     activeTab: {
-      background: '#667eea',
-      color: 'white'
+      background: 'rgba(255,255,255,0.9)',
+      color: '#2c3e50',
+      boxShadow: '0 10px 25px rgba(0,0,0,0.12)'
     },
     sectionCard: {
-      background: 'white',
+      background: 'rgba(255,255,255,0.85)',
       borderRadius: '15px',
       padding: '25px',
       marginBottom: '20px',
-      boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+      boxShadow: '0 12px 25px rgba(0,0,0,0.08)',
+      border: '1px solid rgba(255,255,255,0.55)',
+      backdropFilter: 'blur(8px)'
     },
     sectionTitle: {
       fontSize: '1.3rem',
@@ -180,29 +191,45 @@ const AdminDashboard = () => {
 
       {/* Stats Grid */}
       <div style={styles.statsGrid}>
-        <div style={styles.statCard}>
-          <div style={styles.statIcon}>🏥</div>
-          <div>
-            <div style={styles.statValue}>{stats.totalPharmacies}</div>
-            <div style={styles.statLabel}>Total Pharmacies</div>
-          </div>
+        <div
+        style={styles.statCard}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = '0 18px 35px rgba(0,0,0,0.18)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.12)'; }}
+      >
+        <div style={styles.statIcon}></div>
+        <div>
+          <div style={styles.statValue}>{stats.totalPharmacies}</div>
+          <div style={styles.statLabel}>Total Pharmacies</div>
         </div>
-        <div style={styles.statCard}>
-          <div style={styles.statIcon}>👥</div>
+      </div>
+        <div
+          style={styles.statCard}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = '0 18px 35px rgba(0,0,0,0.18)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.12)'; }}
+        >
+          <div style={styles.statIcon}></div>
           <div>
             <div style={styles.statValue}>{stats.totalUsers}</div>
             <div style={styles.statLabel}>Total Users</div>
           </div>
         </div>
-        <div style={styles.statCard}>
-          <div style={styles.statIcon}>💊</div>
+        <div
+          style={styles.statCard}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = '0 18px 35px rgba(0,0,0,0.18)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.12)'; }}
+        >
+          <div style={styles.statIcon}></div>
           <div>
             <div style={styles.statValue}>{stats.totalDrugs}</div>
             <div style={styles.statLabel}>Total Drugs</div>
           </div>
         </div>
-        <div style={styles.statCard}>
-          <div style={styles.statIcon}>⏳</div>
+        <div
+          style={styles.statCard}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = '0 18px 35px rgba(0,0,0,0.18)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.12)'; }}
+        >
+          <div style={styles.statIcon}></div>
           <div>
             <div style={styles.statValue}>{stats.pendingApprovals}</div>
             <div style={styles.statLabel}>Pending Approvals</div>
@@ -294,16 +321,16 @@ const AdminDashboard = () => {
         <h2 style={styles.sectionTitle}>Quick Actions</h2>
         <div style={styles.actionButtons}>
           <button style={styles.actionBtn} onClick={() => navigate('/admin/pharmacies')}>
-            🏥 Manage Pharmacies
+             Manage Pharmacies
           </button>
           <button style={styles.actionBtn} onClick={() => navigate('/admin/users')}>
             👥 Manage Users
           </button>
           <button style={styles.actionBtn} onClick={() => navigate('/admin/inventory')}>
-            📦 Manage Inventory
+             Manage Inventory
           </button>
           <button style={styles.actionBtn} onClick={() => navigate('/admin/reports')}>
-            📊 View Reports
+             View Reports
           </button>
         </div>
       </div>

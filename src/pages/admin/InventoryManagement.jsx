@@ -1,18 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+// useNavigate removed - not needed here
+import { useAuth } from '../../context/AuthContext';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const InventoryManagement = () => {
-  const navigate = useNavigate();
+
   const [inventory, setInventory] = useState([]);
   const [pharmacies, setPharmacies] = useState([]);
-  const [selectedPharmacy, setSelectedPharmacy] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const { user } = useAuth();
+  // const { pharmacies: pharmacyList } = usePharmacy(); // not needed right now
+
+  // if user is pharmacist we only allow them to see/edit their own pharmacy
+  const userPharmacyId = user?.pharmacy_id;
 
   // Form state
   const [formData, setFormData] = useState({
-    pharmacyId: '',
     drugName: '',
     category: '',
     quantity: '',
@@ -26,6 +33,10 @@ const InventoryManagement = () => {
   useEffect(() => {
     loadPharmacies();
     loadInventory();
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
   }, []);
 
   const loadPharmacies = () => {
@@ -56,9 +67,9 @@ const InventoryManagement = () => {
     }
   };
 
-  // Filter inventory based on pharmacy and search
+  // Filter inventory based on logged-in user's pharmacy and search
   const filteredInventory = inventory.filter(item => {
-    const matchesPharmacy = selectedPharmacy === 'all' || item.pharmacyId === parseInt(selectedPharmacy);
+    const matchesPharmacy = !userPharmacyId || item.pharmacyId === userPharmacyId;
     const matchesSearch = item.drugName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.batchNumber.toLowerCase().includes(searchTerm.toLowerCase());
@@ -75,12 +86,9 @@ const InventoryManagement = () => {
 
   // Handle add new inventory item
   const handleAddItem = () => {
-    const selectedPharmacyObj = pharmacies.find(p => p.id === parseInt(formData.pharmacyId));
-    
     const newItem = {
       id: inventory.length + 1,
       ...formData,
-      pharmacyName: selectedPharmacyObj?.name || 'Unknown',
       status: formData.quantity < formData.threshold ? 'low' : 'active',
       quantity: parseInt(formData.quantity),
       price: parseInt(formData.price),
@@ -93,7 +101,6 @@ const InventoryManagement = () => {
     
     // Reset form
     setFormData({
-      pharmacyId: '',
       drugName: '',
       category: '',
       quantity: '',
@@ -110,7 +117,6 @@ const InventoryManagement = () => {
   const handleEditItem = (item) => {
     setEditingItem(item);
     setFormData({
-      pharmacyId: item.pharmacyId,
       drugName: item.drugName,
       category: item.category,
       quantity: item.quantity,
@@ -124,13 +130,10 @@ const InventoryManagement = () => {
 
   // Handle update item
   const handleUpdateItem = () => {
-    const selectedPharmacyObj = pharmacies.find(p => p.id === parseInt(formData.pharmacyId));
-    
     const updatedInventory = inventory.map(item => 
       item.id === editingItem.id ? {
         ...item,
         ...formData,
-        pharmacyName: selectedPharmacyObj?.name || item.pharmacyName,
         status: formData.quantity < formData.threshold ? 'low' : 'active',
         quantity: parseInt(formData.quantity),
         price: parseInt(formData.price),
@@ -144,7 +147,6 @@ const InventoryManagement = () => {
     // Reset
     setEditingItem(null);
     setFormData({
-      pharmacyId: '',
       drugName: '',
       category: '',
       quantity: '',
@@ -172,9 +174,9 @@ const InventoryManagement = () => {
     if (action === 'export') {
       // Export to CSV
       const csv = [
-        ['ID', 'Pharmacy', 'Drug Name', 'Category', 'Quantity', 'Price', 'Expiry Date', 'Threshold', 'Batch Number'],
+        ['ID', 'Drug Name', 'Category', 'Quantity', 'Price', 'Expiry Date', 'Threshold', 'Batch Number'],
         ...filteredInventory.map(item => [
-          item.id, item.pharmacyName, item.drugName, item.category, 
+          item.id, item.drugName, item.category, 
           item.quantity, item.price, item.expiryDate, item.threshold, item.batchNumber
         ])
       ].map(row => row.join(',')).join('\n');
@@ -187,9 +189,8 @@ const InventoryManagement = () => {
       a.click();
     } else if (action === 'lowstock') {
       setSearchTerm('');
-      setSelectedPharmacy('all');
-      // Filter to show only low stock items
-      const lowStockItems = inventory.filter(item => item.quantity < item.threshold);
+      // Filter to show only low stock items for this pharmacy
+      const lowStockItems = inventory.filter(item => item.quantity < item.threshold && (!userPharmacyId || item.pharmacyId === userPharmacyId));
       alert(`Found ${lowStockItems.length} items with low stock`);
     }
   };
@@ -403,26 +404,28 @@ const InventoryManagement = () => {
 
   return (
     <div style={styles.container}>
-      {/* Header */}
-      <div style={styles.header}>
-        <h1 style={styles.title}>Inventory Management</h1>
-        <button style={styles.addButton} onClick={() => {
-          setEditingItem(null);
-          setFormData({
-            pharmacyId: '',
-            drugName: '',
-            category: '',
-            quantity: '',
-            price: '',
-            expiryDate: '',
-            threshold: '',
-            batchNumber: ''
-          });
-          setShowAddForm(!showAddForm);
-        }}>
-          {showAddForm ? '✕ Close' : '+ Add New Item'}
-        </button>
-      </div>
+      {loading && <LoadingSpinner />}
+      {!loading && (
+        <>
+          {/* Header */}
+          <div style={styles.header}>
+            <h1 style={styles.title}>Inventory Management</h1>
+            <button style={styles.addButton} onClick={() => {
+              setEditingItem(null);
+              setFormData({
+                drugName: '',
+                category: '',
+                quantity: '',
+                price: '',
+                expiryDate: '',
+                threshold: '',
+                batchNumber: ''
+              });
+              setShowAddForm(!showAddForm);
+            }}>
+              {showAddForm ? '✕ Close' : '+ Add New Item'}
+            </button>
+          </div>
 
       {/* Stats Cards */}
       <div style={styles.statsGrid}>
@@ -448,25 +451,9 @@ const InventoryManagement = () => {
       {showAddForm && (
         <div style={styles.formContainer}>
           <h2 style={styles.formTitle}>
-            {editingItem ? '✏️ Edit Inventory Item' : '➕ Add New Inventory Item'}
+            {editingItem ? 'Edit Inventory Item' : 'Add New Inventory Item'}
           </h2>
           <div style={styles.formGrid}>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Pharmacy *</label>
-              <select
-                name="pharmacyId"
-                value={formData.pharmacyId}
-                onChange={handleInputChange}
-                style={styles.input}
-                required
-              >
-                <option value="">Select Pharmacy</option>
-                {pharmacies.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
-
             <div style={styles.formGroup}>
               <label style={styles.label}>Drug Name *</label>
               <input
@@ -592,22 +579,12 @@ const InventoryManagement = () => {
       <div style={styles.filtersContainer}>
         <input
           type="text"
-          placeholder="🔍 Search by drug name, category, or batch..."
+          placeholder="Search by drug name, category, or batch..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           style={styles.searchInput}
         />
         
-        <select
-          value={selectedPharmacy}
-          onChange={(e) => setSelectedPharmacy(e.target.value)}
-          style={styles.select}
-        >
-          <option value="all">All Pharmacies</option>
-          {pharmacies.map(p => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-        </select>
 
         <button 
           style={{...styles.actionButton, background: '#3498db', color: 'white'}}
@@ -630,7 +607,6 @@ const InventoryManagement = () => {
           <thead>
             <tr>
               <th style={styles.th}>ID</th>
-              <th style={styles.th}>Pharmacy</th>
               <th style={styles.th}>Drug Name</th>
               <th style={styles.th}>Category</th>
               <th style={styles.th}>Quantity</th>
@@ -642,7 +618,7 @@ const InventoryManagement = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredInventory.map(item => {
+            {filteredInventory.slice().sort((a,b) => a.id - b.id).map((item, index) => {
               const daysLeft = Math.floor((new Date(item.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
               const isLowStock = item.quantity < item.threshold;
               const isExpiringSoon = daysLeft < 30 && daysLeft > 0;
@@ -660,8 +636,7 @@ const InventoryManagement = () => {
 
               return (
                 <tr key={item.id}>
-                  <td style={styles.td}>{item.id}</td>
-                  <td style={styles.td}>{item.pharmacyName}</td>
+                  <td style={styles.td}>{index + 1}</td>
                   <td style={styles.td}>{item.drugName}</td>
                   <td style={styles.td}>{item.category}</td>
                   <td style={{...styles.td, fontWeight: 'bold', color: isLowStock ? '#e74c3c' : '#2c3e50'}}>
@@ -707,6 +682,8 @@ const InventoryManagement = () => {
           </div>
         )}
       </div>
+      </>
+    )}
     </div>
   );
 };
