@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const ManagePharmacies = () => {
   const navigate = useNavigate();
@@ -81,7 +82,7 @@ const ManagePharmacies = () => {
 
     setPharmacies([...pharmacies, newPharmacy]);
     resetForm();
-    alert('✅ Pharmacy added successfully!');
+    alert('Pharmacy added successfully!');
   };
 
   // UPDATE - Select
@@ -104,7 +105,7 @@ const ManagePharmacies = () => {
     
     setPharmacies(updated);
     resetForm();
-    alert('✅ Pharmacy updated successfully!');
+    alert('Pharmacy updated successfully!');
   };
 
   // DELETE
@@ -112,7 +113,7 @@ const ManagePharmacies = () => {
     if (window.confirm(`Are you sure you want to delete ${name}?`)) {
       const filtered = pharmacies.filter(p => p.id !== id);
       setPharmacies(filtered);
-      alert('✅ Pharmacy deleted successfully!');
+      alert('Pharmacy deleted successfully!');
     }
   };
 
@@ -268,7 +269,7 @@ const ManagePharmacies = () => {
     <div style={styles.container}>
       {/* Header */}
       <div style={styles.header}>
-        <h1 style={styles.title}>🏥 Manage Pharmacies (Admin Only)</h1>
+        <h1 style={styles.title}><FontAwesomeIcon icon="hospital" /> Manage Pharmacies (Admin Only)</h1>
         <button 
           style={styles.addButton}
           onClick={() => {
@@ -284,7 +285,7 @@ const ManagePharmacies = () => {
       {showForm && (
         <div style={styles.form}>
           <h3 style={styles.formTitle}>
-            {editingId ? '✏️ Edit Pharmacy' : '➕ Add New Pharmacy'}
+            {editingId ? <><FontAwesomeIcon icon="edit" /> Edit Pharmacy</> : <><FontAwesomeIcon icon="plus" /> Add New Pharmacy</>}
           </h3>
           
           <div style={styles.inputGroup}>
@@ -387,19 +388,19 @@ const ManagePharmacies = () => {
                     style={{...styles.actionBtn, ...styles.editBtn}}
                     onClick={() => handleEdit(p)}
                   >
-                    ✏️ Edit
+                    <FontAwesomeIcon icon="edit" /> Edit
                   </button>
                   <button 
                     style={{...styles.actionBtn, ...styles.toggleBtn}}
                     onClick={() => handleToggleStatus(p.id)}
                   >
-                    {p.status === 'active' ? '🔴 Deactivate' : '🟢 Activate'}
+                    {p.status === 'active' ? <><FontAwesomeIcon icon="times-circle" /> Deactivate</> : <><FontAwesomeIcon icon="check-circle" /> Activate</>}
                   </button>
                   <button 
                     style={{...styles.actionBtn, ...styles.deleteBtn}}
                     onClick={() => handleDelete(p.id, p.name)}
                   >
-                    🗑️ Delete
+                    <FontAwesomeIcon icon="trash" /> Delete
                   </button>
                 </td>
               </tr>
@@ -410,7 +411,7 @@ const ManagePharmacies = () => {
 
       {/* Stats Summary */}
       <div style={styles.statsBox}>
-        <p><strong>📊 Summary:</strong> Total: {pharmacies.length} | Active: {pharmacies.filter(p => p.status === 'active').length} | Pending: {pharmacies.filter(p => p.status === 'pending').length} | Inactive: {pharmacies.filter(p => p.status === 'inactive').length}</p>
+        <p><strong><FontAwesomeIcon icon="chart-bar" /> Summary:</strong> Total: {pharmacies.length} | Active: {pharmacies.filter(p => p.status === 'active').length} | Pending: {pharmacies.filter(p => p.status === 'pending').length} | Inactive: {pharmacies.filter(p => p.status === 'inactive').length}</p>
       </div>
     </div>
   );

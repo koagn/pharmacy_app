@@ -38,12 +38,6 @@ const PharmacyDashboard = () => {
     { id: 4, drug: 'Vitamin C 1000mg', quantity: 1, amount: 1500, time: '01:30 PM', customer: 'Sarah M.' }
   ];
 
-  // Sample reservations
-  const pendingReservations = [
-    { id: 1, drug: 'Metformin 850mg', quantity: 2, customer: 'Paul N.', phone: '677889900', time: '02:00 PM' },
-    { id: 2, drug: 'Amoxicillin 250mg', quantity: 1, customer: 'Jane A.', phone: '699887766', time: '03:30 PM' }
-  ];
-
   // Handler functions for Drug Table
   const handleEditDrug = (drug) => {
     const newQuantity = prompt(`Enter new quantity for ${drug.name}:`, drug.quantity);
@@ -73,8 +67,7 @@ const PharmacyDashboard = () => {
       return daysLeft < 30 && daysLeft > 0;
     }).length,
     todaySales: recentSales.reduce((sum, sale) => sum + sale.amount, 0),
-    totalCustomers: 89,
-    pendingReservations: pendingReservations.length
+    totalCustomers: 89
   };
 
   // Filter inventory based on search
@@ -107,10 +100,6 @@ const PharmacyDashboard = () => {
         item.id === drug.id ? {...item, quantity: parseInt(newQuantity)} : item
       ));
     }
-  };
-
-  const handleConfirmReservation = (reservation) => {
-    alert(`Reservation confirmed for ${reservation.customer}`);
   };
 
   const handleProcessSale = () => {
@@ -230,6 +219,20 @@ const PharmacyDashboard = () => {
     },
     headerLeft: {
       flex: 1
+    },
+    headerTitleRow: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '15px',
+      marginBottom: '8px',
+    },
+    headerPharmacyImage: {
+      width: '60px',
+      height: '60px',
+      borderRadius: '12px',
+      objectFit: 'cover',
+      border: '3px solid white',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
     },
     headerTitle: {
       fontSize: '2.2rem',
@@ -644,7 +647,7 @@ const PharmacyDashboard = () => {
     };
 
     setInventory([...inventory, newDrug]);
-    alert(`✅ ${drugName} added to your inventory!`);
+    alert(`${drugName} added to your inventory!`);
   };
 
   // If no pharmacy data, show error
@@ -674,7 +677,11 @@ const PharmacyDashboard = () => {
         </button>
 
         <div style={styles.sidebarHeader}>
-          <img src={pharmacyLogo} alt="Pharmacy Logo" style={styles.sidebarLogo} />
+          {pharmacy.image_url ? (
+            <img src={`http://localhost:5000${pharmacy.image_url}`} alt={pharmacy.name} style={styles.sidebarLogo} />
+          ) : (
+            <img src={pharmacyLogo} alt="Pharmacy Logo" style={styles.sidebarLogo} />
+          )}
           <h3 style={styles.sidebarTitle}>{pharmacy.name}</h3>
         </div>
 
@@ -704,17 +711,6 @@ const PharmacyDashboard = () => {
           <button
             style={{
               ...styles.navItem,
-              ...(activeSection === 'reservations' && styles.activeNavItem)
-            }}
-            onClick={() => setActiveSection('reservations')}
-          >
-            <FontAwesomeIcon icon="calendar-check" style={styles.navIcon} />
-            <span style={styles.navText}>Reservations</span>
-          </button>
-
-          <button
-            style={{
-              ...styles.navItem,
               ...(activeSection === 'sales' && styles.activeNavItem)
             }}
             onClick={() => setActiveSection('sales')}
@@ -730,9 +726,18 @@ const PharmacyDashboard = () => {
         {/* Header */}
         <div style={styles.header}>
           <div style={styles.headerLeft}>
-            <h1 style={styles.headerTitle}>
-              <FontAwesomeIcon icon="store" /> Pharmacy Dashboard
-            </h1>
+            <div style={styles.headerTitleRow}>
+              {pharmacy.image_url && (
+                <img 
+                  src={`http://localhost:5000${pharmacy.image_url}`} 
+                  alt={pharmacy.name}
+                  style={styles.headerPharmacyImage}
+                />
+              )}
+              <h1 style={styles.headerTitle}>
+                <FontAwesomeIcon icon="store" /> Pharmacy Dashboard
+              </h1>
+            </div>
             <p style={styles.headerSubtitle}>
               <FontAwesomeIcon icon="user-check" /> Welcome back, {user?.name || 'Pharmacist'}
             </p>
@@ -989,64 +994,10 @@ const PharmacyDashboard = () => {
             {/* Summary */}
             <div style={styles.summaryCard}>
               <p style={styles.summaryText}>
-                📊 <strong>Inventory Summary:</strong> {inventory.length} total items |
+                <strong><FontAwesomeIcon icon="chart-bar" /> Inventory Summary:</strong> {inventory.length} total items |
                 {stats.lowStock} low stock | {stats.expiringSoon} expiring soon
               </p>
             </div>
-          </div>
-        )}
-
-        {/* Reservations Section */}
-        {activeSection === 'reservations' && (
-          <div style={styles.inventorySection}>
-            <div style={styles.inventoryHeader}>
-              <h2 style={styles.inventoryTitle}>
-                <FontAwesomeIcon icon="clipboard-list" /> Pending Reservations
-              </h2>
-            </div>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.tableHeader}>Drug</th>
-                  <th style={styles.tableHeader}>Quantity</th>
-                  <th style={styles.tableHeader}>Customer</th>
-                  <th style={styles.tableHeader}>Phone</th>
-                  <th style={styles.tableHeader}>Pickup Time</th>
-                  <th style={styles.tableHeader}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pendingReservations.map(res => (
-                  <tr key={res.id}>
-                    <td style={styles.tableCell}>
-                      <FontAwesomeIcon icon="pills" style={{marginRight: '8px', color: '#2ecc71'}} />
-                      {res.drug}
-                    </td>
-                    <td style={styles.tableCell}>{res.quantity}</td>
-                    <td style={styles.tableCell}>
-                      <FontAwesomeIcon icon="user" style={{marginRight: '8px', color: '#3498db'}} />
-                      {res.customer}
-                    </td>
-                    <td style={styles.tableCell}>
-                      <FontAwesomeIcon icon="phone" style={{marginRight: '8px', color: '#2ecc71'}} />
-                      {res.phone}
-                    </td>
-                    <td style={styles.tableCell}>
-                      <FontAwesomeIcon icon="clock" style={{marginRight: '8px', color: '#f39c12'}} />
-                      {res.time}
-                    </td>
-                    <td style={styles.tableCell}>
-                      <button
-                        style={styles.actionBtn}
-                        onClick={() => handleConfirmReservation(res)}
-                      >
-                        <FontAwesomeIcon icon="check-circle" /> Confirm
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         )}
 

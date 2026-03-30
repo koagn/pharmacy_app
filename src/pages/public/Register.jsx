@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { usePharmacy } from '../../context/PharmacyContext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import api from '../../services/api';
 
@@ -15,14 +15,11 @@ const Register = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [role, setRole] = useState('patient');
-    const [pharmacyId, setPharmacyId] = useState('');
     const [phone, setPhone] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const { pharmacies } = usePharmacy();
-    
     const { setAuthData } = useAuth();
     const navigate = useNavigate();
 
@@ -56,9 +53,7 @@ const Register = () => {
                 email,
                 password,
                 role,
-                phone,
-                // set pharmacy assignment only when explicitly chosen
-                ...(role === 'pharmacist' && pharmacyId ? { pharmacyId } : {})
+                phone
             };
             
             console.log('Registering user:', userData);
@@ -356,7 +351,7 @@ const Register = () => {
                                     onClick={togglePasswordVisibility}
                                     style={styles.toggleButton}
                                 >
-                                    {showPassword ? "👁️" : "👁️‍🗨️"}
+                                    <FontAwesomeIcon icon={showPassword ? "eye-slash" : "eye"} />
                                 </button>
                             </div>
                         </div>
@@ -377,7 +372,7 @@ const Register = () => {
                                     onClick={toggleConfirmPasswordVisibility}
                                     style={styles.toggleButton}
                                 >
-                                    {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
+                                    <FontAwesomeIcon icon={showConfirmPassword ? "eye-slash" : "eye"} />
                                 </button>
                             </div>
                         </div>
@@ -392,23 +387,6 @@ const Register = () => {
                                 style={styles.input}
                             />
                         </div>
-
-                        {role === 'pharmacist' && (
-                            <div style={styles.inputGroup}>
-                                <label style={styles.label}>Linked Pharmacy (optional)</label>
-                                <select
-                                    name="pharmacyId"
-                                    value={pharmacyId}
-                                    onChange={(e) => setPharmacyId(e.target.value)}
-                                    style={styles.select}
-                                >
-                                    <option value="">-- none / create new later --</option>
-                                    {pharmacies.map(p => (
-                                        <option key={p.id} value={p.id}>{p.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
 
                         <select
                             value={role}

@@ -266,6 +266,19 @@ const PharmacyList = () => {
       fontSize: '0.8rem',
       fontWeight: '500',
     },
+    pharmacyImageContainer: {
+      marginBottom: '15px',
+      textAlign: 'center',
+    },
+    pharmacyImage: {
+      width: '100%',
+      maxWidth: '200px',
+      height: '120px',
+      objectFit: 'cover',
+      borderRadius: '12px',
+      border: '2px solid #e9ecef',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    },
     info: {
       marginTop: '15px',
       padding: '15px',
@@ -464,6 +477,20 @@ const PharmacyList = () => {
                         <h3 style={styles.pharmacyName}>{pharmacy.name}</h3>
                         {pharmacy.is_on_duty && <span style={styles.badge}>24/7</span>}
                       </div>
+                      
+                      {/* Pharmacy Image */}
+                      {pharmacy.image_url && (
+                        <div style={styles.pharmacyImageContainer}>
+                          <img 
+                            src={`http://localhost:5000${pharmacy.image_url}`} 
+                            alt={pharmacy.name}
+                            style={styles.pharmacyImage}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
                       
                       <div style={styles.area}>
                         <FontAwesomeIcon icon="map-marker-alt" /> {pharmacy.location || pharmacy.area}

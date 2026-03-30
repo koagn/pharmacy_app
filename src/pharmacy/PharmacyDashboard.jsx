@@ -34,12 +34,6 @@ const PharmacyDashboard = () => {
     { id: 4, drug: 'Vitamin C 1000mg', quantity: 1, amount: 1500, time: '01:30 PM', customer: 'Sarah M.' }
   ]);
 
-  // Sample reservations (will connect later)
-  const [pendingReservations] = useState([
-    { id: 1, drug: 'Metformin 850mg', quantity: 2, customer: 'Paul N.', phone: '677889900', time: '02:00 PM' },
-    { id: 2, drug: 'Amoxicillin 250mg', quantity: 1, customer: 'Jane A.', phone: '699887766', time: '03:30 PM' }
-  ]);
-
   // ========== FETCH PHARMACY AND INVENTORY FROM BACKEND ==========
   useEffect(() => {
     const fetchPharmacyData = async () => {
@@ -111,12 +105,80 @@ const PharmacyDashboard = () => {
       return daysLeft < 30 && daysLeft > 0;
     }).length,
     todaySales: recentSales.reduce((sum, sale) => sum + sale.amount, 0),
-    totalCustomers: 89,
-    pendingReservations: pendingReservations.length
+    totalCustomers: 89
   };
 
   // Low stock items
   const lowStockItems = inventory.filter(item => item.quantity < item.threshold);
+
+  // ========== DRUGS DATABASE FOR PHARMACY ==========
+  const DRUGS_DATABASE = [
+    { name: 'Paracetamol 500mg', category: 'Pain Relief', generic: 'Acetaminophen' },
+    { name: 'Ibuprofen 400mg', category: 'Pain Relief', generic: 'Ibuprofen' },
+    { name: 'Aspirin 100mg', category: 'Pain Relief', generic: 'Acetylsalicylic Acid' },
+    { name: 'Amoxicillin 250mg', category: 'Antibiotics', generic: 'Amoxicillin' },
+    { name: 'Azithromycin 500mg', category: 'Antibiotics', generic: 'Azithromycin' },
+    { name: 'Ciprofloxacin 500mg', category: 'Antibiotics', generic: 'Ciprofloxacin' },
+    { name: 'Metronidazole 500mg', category: 'Antibiotics', generic: 'Metronidazole' },
+    { name: 'Doxycycline 100mg', category: 'Antibiotics', generic: 'Doxycycline' },
+    { name: 'Vitamin C 1000mg', category: 'Vitamins', generic: 'Ascorbic Acid' },
+    { name: 'Vitamin D3 5000IU', category: 'Vitamins', generic: 'Cholecalciferol' },
+    { name: 'Vitamin B12 1000mcg', category: 'Vitamins', generic: 'Cyanocobalamin' },
+    { name: 'Multivitamin Complex', category: 'Vitamins', generic: 'Multiple' },
+    { name: 'Cetirizine 10mg', category: 'Allergy', generic: 'Cetirizine' },
+    { name: 'Loratadine 10mg', category: 'Allergy', generic: 'Loratadine' },
+    { name: 'Diphenhydramine 25mg', category: 'Allergy', generic: 'Diphenhydramine' },
+    { name: 'Metformin 500mg', category: 'Diabetes', generic: 'Metformin' },
+    { name: 'Glibenclamide 5mg', category: 'Diabetes', generic: 'Glibenclamide' },
+    { name: 'Amlodipine 5mg', category: 'Blood Pressure', generic: 'Amlodipine' },
+    { name: 'Lisinopril 10mg', category: 'Blood Pressure', generic: 'Lisinopril' },
+    { name: 'Omeprazole 20mg', category: 'Digestive', generic: 'Omeprazole' },
+    { name: 'Ranitidine 150mg', category: 'Digestive', generic: 'Ranitidine' },
+    { name: 'Domperidone 10mg', category: 'Digestive', generic: 'Domperidone' },
+    { name: 'Salbutamol 4mg', category: 'Respiratory', generic: 'Salbutamol' },
+    { name: 'Bromhexine 8mg', category: 'Respiratory', generic: 'Bromhexine' },
+    { name: 'Prednisolone 5mg', category: 'Anti-inflammatory', generic: 'Prednisolone' },
+    { name: 'Dexamethasone 0.5mg', category: 'Anti-inflammatory', generic: 'Dexamethasone' },
+    { name: 'Chloroquine 250mg', category: 'Antimalarial', generic: 'Chloroquine' },
+    { name: 'Artemisinin 50mg', category: 'Antimalarial', generic: 'Artemisinin' },
+    { name: 'ORS Sachets', category: 'Rehydration', generic: 'Oral Rehydration Salt' },
+    { name: 'Ferrous Sulfate 200mg', category: 'Supplements', generic: 'Iron Supplement' },
+    { name: 'Folic Acid 5mg', category: 'Supplements', generic: 'Folic Acid' },
+    { name: 'Zinc Tablets 20mg', category: 'Supplements', generic: 'Zinc' },
+    { name: 'Calcium 500mg', category: 'Supplements', generic: 'Calcium Carbonate' },
+    { name: 'Melatonin 3mg', category: 'Sleep Aid', generic: 'Melatonin' },
+    { name: 'Omega 3 1000mg', category: 'Heart Health', generic: 'Fish Oil' },
+    { name: 'Cough Syrup', category: 'Cough & Cold', generic: 'Dextromethorphan' },
+    { name: 'Nasal Drops', category: 'Cough & Cold', generic: 'Saline Solution' },
+    { name: 'Antacid Tablets', category: 'Digestive', generic: 'Calcium Carbonate' },
+    { name: 'Antifungal Cream', category: 'Skin Care', generic: 'Clotrimazole' },
+    { name: 'Hydrocortisone Cream', category: 'Skin Care', generic: 'Hydrocortisone' },
+    { name: 'Eye Drops', category: 'Eye Care', generic: 'Artificial Tears' },
+    { name: 'Ear Drops', category: 'Ear Care', generic: 'Saline Solution' },
+    { name: 'Antiseptic Solution', category: 'First Aid', generic: 'Povidone-Iodine' },
+    { name: 'Paracetamol Syrup', category: 'Pain Relief', generic: 'Acetaminophen' },
+    { name: 'Amoxicillin Syrup', category: 'Antibiotics', generic: 'Amoxicillin' },
+    { name: 'ORS for Children', category: 'Rehydration', generic: 'Pediatric ORS' },
+    { name: 'Metformin 850mg', category: 'Diabetes', generic: 'Metformin' },
+    { name: 'Atorvastatin 20mg', category: 'Heart Health', generic: 'Atorvastatin' },
+    { name: 'Losartan 50mg', category: 'Blood Pressure', generic: 'Losartan' },
+    { name: 'Pantoprazole 40mg', category: 'Digestive', generic: 'Pantoprazole' },
+    { name: 'Levofloxacin 500mg', category: 'Antibiotics', generic: 'Levofloxacin' },
+  ];
+
+  const [drugSearchQuery, setDrugSearchQuery] = useState('');
+  const [selectedDrugCategory, setSelectedDrugCategory] = useState('all');
+  const [showAddDrugModal, setShowAddDrugModal] = useState(false);
+  const [selectedDrugForAdd, setSelectedDrugForAdd] = useState(null);
+
+  const drugCategories = ['all', ...new Set(DRUGS_DATABASE.map(d => d.category))];
+
+  const filteredDrugs = DRUGS_DATABASE.filter(drug => {
+    const matchesSearch = drug.name.toLowerCase().includes(drugSearchQuery.toLowerCase()) ||
+                        drug.generic.toLowerCase().includes(drugSearchQuery.toLowerCase());
+    const matchesCategory = selectedDrugCategory === 'all' || drug.category === selectedDrugCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   // Expiring items
   const expiringItems = inventory.filter(item => {
@@ -130,10 +192,6 @@ const PharmacyDashboard = () => {
   // Quick action handlers
   const handleReorder = (drug) => {
     alert(`Reorder initiated for ${drug.name} at ${pharmacy?.name || 'pharmacy'}`);
-  };
-
-  const handleConfirmReservation = (reservation) => {
-    alert(`Reservation confirmed for ${reservation.customer}`);
   };
 
   const [drugSearch, setDrugSearch] = useState('');
@@ -286,6 +344,20 @@ const PharmacyDashboard = () => {
     headerLeft: {
       flex: 1
     },
+    headerTitleRow: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '15px',
+      marginBottom: '8px',
+    },
+    headerPharmacyImage: {
+      width: '60px',
+      height: '60px',
+      borderRadius: '12px',
+      objectFit: 'cover',
+      border: '3px solid white',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    },
     headerTitle: {
       fontSize: '2.2rem',
       margin: '0 0 8px 0',
@@ -362,70 +434,77 @@ const PharmacyDashboard = () => {
     },
     statsGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-      gap: '25px',
+      gridTemplateColumns: 'repeat(4, 1fr)',
+      gap: '24px',
       marginBottom: '40px'
     },
     statCard: {
       background: 'white',
-      padding: '30px',
+      padding: '28px',
+      borderRadius: '20px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '20px',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+      border: '1px solid rgba(46, 204, 113, 0.08)',
+      transition: 'all 0.3s ease',
+      cursor: 'pointer',
+      position: 'relative',
+      overflow: 'hidden'
+    },
+    statCardHover: {
+      transform: 'translateY(-4px)',
+      boxShadow: '0 8px 30px rgba(46, 204, 113, 0.15)'
+    },
+    statIcon: {
+      width: '65px',
+      height: '65px',
       borderRadius: '16px',
       display: 'flex',
       alignItems: 'center',
-      gap: '25px',
-      boxShadow: '0 6px 24px rgba(0,0,0,0.08)',
-      border: '1px solid rgba(46, 204, 113, 0.1)',
-      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-      cursor: 'pointer'
-    },
-    statIcon: {
-      width: '70px',
-      height: '70px',
-      borderRadius: '50%',
-      display: 'flex',
-      alignItems: 'center',
       justifyContent: 'center',
-      fontSize: '1.8rem',
+      fontSize: '1.6rem',
       background: 'linear-gradient(135deg, #2ecc71, #27ae60)',
       color: 'white',
-      boxShadow: '0 4px 12px rgba(46, 204, 113, 0.3)',
+      boxShadow: '0 4px 15px rgba(46, 204, 113, 0.35)',
       flexShrink: 0
     },
     statContent: {
       flex: 1
     },
     statValue: {
-      fontSize: '2.2rem',
+      fontSize: '2.4rem',
       fontWeight: 'bold',
       color: '#2c3e50',
-      margin: '0 0 5px 0',
-      lineHeight: '1.2'
+      margin: '0 0 4px 0',
+      lineHeight: '1.1'
     },
     statLabel: {
-      fontSize: '1rem',
+      fontSize: '0.95rem',
       color: '#7f8c8d',
       margin: 0,
       display: 'flex',
       alignItems: 'center',
-      gap: '6px'
+      gap: '6px',
+      fontWeight: '500'
     },
     contentGrid: {
       display: 'grid',
-      gridTemplateColumns: '2fr 1fr',
-      gap: '30px',
+      gridTemplateColumns: '1fr 380px',
+      gap: '28px',
       marginBottom: '40px'
     },
     mainSection: {
       background: 'white',
-      borderRadius: '16px',
-      padding: '30px',
-      boxShadow: '0 6px 24px rgba(0,0,0,0.08)',
-      border: '1px solid rgba(46, 204, 113, 0.1)'
+      borderRadius: '20px',
+      padding: '28px',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+      border: '1px solid rgba(46, 204, 113, 0.08)'
     },
     sidebarSection: {
       display: 'flex',
       flexDirection: 'column',
-      gap: '30px'
+      gap: '24px'
     },
     sectionHeader: {
       display: 'flex',
@@ -538,15 +617,15 @@ const PharmacyDashboard = () => {
     },
     quickActions: {
       background: 'white',
-      borderRadius: '16px',
-      padding: '30px',
-      boxShadow: '0 6px 24px rgba(0,0,0,0.08)',
-      border: '1px solid rgba(46, 204, 113, 0.1)'
+      borderRadius: '20px',
+      padding: '28px',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+      border: '1px solid rgba(46, 204, 113, 0.08)'
     },
     quickActionsTitle: {
-      fontSize: '1.3rem',
+      fontSize: '1.2rem',
       color: '#2c3e50',
-      margin: '0 0 25px 0',
+      margin: '0 0 20px 0',
       display: 'flex',
       alignItems: 'center',
       gap: '10px',
@@ -554,24 +633,24 @@ const PharmacyDashboard = () => {
     },
     actionButtons: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-      gap: '15px'
+      gridTemplateColumns: '1fr',
+      gap: '12px'
     },
     actionButton: {
       background: 'linear-gradient(135deg, #2ecc71, #27ae60)',
       color: 'white',
       border: 'none',
-      padding: '18px',
-      borderRadius: '12px',
+      padding: '16px 20px',
+      borderRadius: '14px',
       cursor: 'pointer',
-      fontSize: '1rem',
-      fontWeight: '500',
+      fontSize: '0.95rem',
+      fontWeight: '600',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       gap: '10px',
-      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-      boxShadow: '0 4px 12px rgba(46, 204, 113, 0.3)'
+      transition: 'all 0.3s ease',
+      boxShadow: '0 4px 15px rgba(46, 204, 113, 0.3)'
     },
     inventorySection: {
       background: 'white',
@@ -711,14 +790,18 @@ const PharmacyDashboard = () => {
         </button>
 
         <div style={styles.sidebarHeader}>
-          <img src={pharmacyLogo} alt="Pharmacy Logo" style={styles.sidebarLogo} />
+          {pharmacy.image_url ? (
+            <img src={`http://localhost:5000${pharmacy.image_url}`} alt={pharmacy.name} style={styles.sidebarLogo} />
+          ) : (
+            <img src={pharmacyLogo} alt="Pharmacy Logo" style={styles.sidebarLogo} />
+          )}
           <h3 style={styles.sidebarTitle}>{pharmacy.name}</h3>
         </div>
 
         <nav style={styles.sidebarNav}>
           {[
             { key: 'overview', icon: 'chart-bar', label: 'Overview' },
-            { key: 'reservations', icon: 'calendar-check', label: 'Reservations' }
+            { key: 'drugs', icon: 'pills', label: 'Drugs Database' }
           ].map(({ key, icon, label }) => (
             <button
               key={key}
@@ -740,9 +823,18 @@ const PharmacyDashboard = () => {
         {/* Header */}
         <div style={styles.header}>
           <div style={styles.headerLeft}>
-            <h1 style={styles.headerTitle}>
-              <FontAwesomeIcon icon="store" /> Pharmacy Dashboard
-            </h1>
+            <div style={styles.headerTitleRow}>
+              {pharmacy.image_url && (
+                <img 
+                  src={`http://localhost:5000${pharmacy.image_url}`} 
+                  alt={pharmacy.name}
+                  style={styles.headerPharmacyImage}
+                />
+              )}
+              <h1 style={styles.headerTitle}>
+                <FontAwesomeIcon icon="store" /> Pharmacy Dashboard
+              </h1>
+            </div>
             <p style={styles.headerSubtitle}>
               <FontAwesomeIcon icon="user-check" /> Welcome back, {user?.name || 'Pharmacist'}
             </p>
@@ -807,25 +899,13 @@ const PharmacyDashboard = () => {
           </div>
 
           <div style={styles.statCard}>
-            <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #e74c3c, #c0392b)' }}>
-              <FontAwesomeIcon icon="hourglass-half" />
+            <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #3498db, #2980b9)' }}>
+              <FontAwesomeIcon icon="users" />
             </div>
             <div style={styles.statContent}>
-              <div style={styles.statValue}>{stats.expiringSoon}</div>
+              <div style={styles.statValue}>{stats.totalCustomers}</div>
               <div style={styles.statLabel}>
-                <FontAwesomeIcon icon="calendar-times" /> Expiring Soon
-              </div>
-            </div>
-          </div>
-
-          <div style={styles.statCard}>
-            <div style={styles.statIcon}>
-              <FontAwesomeIcon icon="money-bill-wave" />
-            </div>
-            <div style={styles.statContent}>
-              <div style={styles.statValue}>{formatCurrency(stats.todaySales)}</div>
-              <div style={styles.statLabel}>
-                <FontAwesomeIcon icon="chart-line" /> Today's Sales
+                <FontAwesomeIcon icon="user-plus" /> Total Customers
               </div>
             </div>
           </div>
@@ -845,23 +925,23 @@ const PharmacyDashboard = () => {
               {/* Yaounde Drug Availability Search */}
               <div style={{ ...styles.sectionHeader, marginBottom: '20px', paddingBottom: '12px' }}>
                 <h3 style={{ ...styles.sectionTitle, fontSize: '1.2rem' }}>
-                  <FontAwesomeIcon icon="hospital" /> Search Drugs in Yaounde Pharmacies
+                  <FontAwesomeIcon icon="hospital" /> Drug Availability
                 </h3>
               </div>
               <div style={{ ...styles.searchContainer, display: 'flex', gap: '10px', alignItems: 'center' }}>
                 <input
                   type="text"
-                  placeholder="Enter drug name..."
+                  placeholder="Search drug name..."
                   value={drugSearch}
                   onChange={(e) => setDrugSearch(e.target.value)}
                   style={{ ...styles.searchInput, flex: 1 }}
                 />
                 <button style={styles.actionBtn} onClick={handleDrugAvailabilitySearch}>
-                  <FontAwesomeIcon icon="search" /> Find
+                  <FontAwesomeIcon icon="search" /> Search
                 </button>
               </div>
               {drugSearch.trim().length > 0 && (
-                <div style={{ marginBottom: '20px', background: 'white', padding: '16px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                <div style={{ marginTop: '20px', background: '#f8f9fa', padding: '16px', borderRadius: '12px' }}>
                   {availabilityResults.length > 0 ? (
                     availabilityResults.map(ph => (
                       <div key={ph.id} style={{ marginBottom: '12px' }}>
@@ -874,161 +954,195 @@ const PharmacyDashboard = () => {
                       </div>
                     ))
                   ) : (
-                    <p style={{ margin: 0, color: '#7f8c8d' }}>No matching drug availability found in Yaounde pharmacies.</p>
+                    <p style={{ margin: 0, color: '#7f8c8d' }}>No matching drugs found.</p>
                   )}
                 </div>
               )}
 
-              {/* Search */}
-              <div style={styles.searchContainer}>
-                <input
-                  type="text"
-                  placeholder="Search inventory..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  style={styles.searchInput}
-                />
-              </div>
-
               {/* Low Stock Alerts */}
-              <div style={{ marginBottom: '30px' }}>
+              <div style={{ marginBottom: '20px' }}>
                 <h3 style={{ ...styles.sectionTitle, fontSize: '1.2rem', marginBottom: '15px' }}>
                   <FontAwesomeIcon icon="exclamation-circle" style={{ color: '#f39c12' }} /> Low Stock Alerts
                 </h3>
-                {lowStockItems.slice(0, 3).map(item => (
-                  <div key={item.id} style={styles.alertCard}>
-                    <FontAwesomeIcon icon="exclamation-triangle" style={styles.alertIcon} />
-                    <div style={styles.alertContent}>
-                      <div style={styles.alertTitle}>{item.name}</div>
-                      <div style={styles.alertText}>
-                        Current stock: {item.quantity} | Threshold: {item.threshold}
+                {lowStockItems.length === 0 ? (
+                  <p style={{ color: '#27ae60', textAlign: 'center', padding: '20px', background: '#e8f8f0', borderRadius: '12px' }}>
+                    <FontAwesomeIcon icon="check-circle" /> All inventory items are well stocked!
+                  </p>
+                ) : (
+                  lowStockItems.slice(0, 5).map(item => (
+                    <div key={item.id} style={styles.alertCard}>
+                      <FontAwesomeIcon icon="exclamation-triangle" style={styles.alertIcon} />
+                      <div style={styles.alertContent}>
+                        <div style={styles.alertTitle}>{item.name}</div>
+                        <div style={styles.alertText}>
+                          Current stock: {item.quantity} | Threshold: {item.threshold}
+                        </div>
                       </div>
                     </div>
-                    <button style={styles.actionBtn} onClick={() => handleReorder(item)}>
-                      <FontAwesomeIcon icon="sync-alt" /> Reorder
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              {/* Recent Sales Table */}
-              <div>
-                <div style={styles.sectionHeader}>
-                  <h3 style={{ ...styles.sectionTitle, fontSize: '1.2rem' }}>
-                    <FontAwesomeIcon icon="chart-line" style={{ color: '#27ae60' }} /> Recent Sales
-                  </h3>
-                  <button style={styles.viewAllBtn}>View All</button>
-                </div>
-                <table style={styles.table}>
-                  <thead>
-                    <tr>
-                      <th style={styles.tableHeader}>Drug</th>
-                      <th style={styles.tableHeader}>Quantity</th>
-                      <th style={styles.tableHeader}>Customer</th>
-                      <th style={styles.tableHeader}>Amount</th>
-                      <th style={styles.tableHeader}>Time</th>
-                     </tr>
-                  </thead>
-                  <tbody>
-                    {recentSales.map(sale => (
-                      <tr key={sale.id}>
-                        <td style={styles.tableCell}>
-                          <FontAwesomeIcon icon="pills" style={{ marginRight: '8px', color: '#2ecc71' }} />
-                          {sale.drug}
-                        </td>
-                        <td style={styles.tableCell}>{sale.quantity}</td>
-                        <td style={styles.tableCell}>
-                          <FontAwesomeIcon icon="user" style={{ marginRight: '8px', color: '#3498db' }} />
-                          {sale.customer}
-                        </td>
-                        <td style={styles.tableCellBold}>
-                          {formatCurrency(sale.amount)}
-                        </td>
-                        <td style={styles.tableCell}>
-                          <FontAwesomeIcon icon="clock" style={{ marginRight: '8px', color: '#95a5a6' }} />
-                          {sale.time}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                  ))
+                )}
               </div>
             </div>
 
             {/* Right Panel */}
             <div style={styles.sidebarSection}>
-              {/* Expiring Soon */}
+              {/* Low Stock Summary */}
               <div style={styles.mainSection}>
                 <div style={styles.sectionHeader}>
                   <h3 style={{ ...styles.sectionTitle, fontSize: '1.2rem' }}>
-                    <FontAwesomeIcon icon="hourglass-half" style={{ color: '#e74c3c' }} /> Expiring Soon
+                    <FontAwesomeIcon icon="exclamation-circle" style={{ color: '#f39c12' }} /> Low Stock Items
                   </h3>
-                  <button style={styles.viewAllBtn}>View All</button>
                 </div>
-                {expiringItems.slice(0, 4).map(item => (
-                  <div key={item.id} style={{ ...styles.alertCard, borderLeftColor: '#e74c3c' }}>
-                    <FontAwesomeIcon icon="calendar-times" style={{ ...styles.alertIcon, color: '#e74c3c' }} />
-                    <div style={styles.alertContent}>
-                      <div style={styles.alertTitle}>{item.name}</div>
-                      <div style={styles.alertText}>
-                        {item.daysLeft} days left | Expires: {item.expiry_date}
+                {lowStockItems.length === 0 ? (
+                  <p style={{ color: '#27ae60', textAlign: 'center', padding: '20px' }}>
+                    <FontAwesomeIcon icon="check-circle" /> All items well stocked!
+                  </p>
+                ) : (
+                  lowStockItems.slice(0, 5).map(item => (
+                    <div key={item.id} style={{ ...styles.alertCard, borderLeftColor: '#f39c12' }}>
+                      <FontAwesomeIcon icon="exclamation-triangle" style={{ ...styles.alertIcon, color: '#f39c12' }} />
+                      <div style={styles.alertContent}>
+                        <div style={styles.alertTitle}>{item.name}</div>
+                        <div style={styles.alertText}>
+                          Stock: {item.quantity} | Min: {item.threshold}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>
         )}
 
-        {/* ===== RESERVATIONS SECTION ===== */}
-        {activeSection === 'reservations' && (
-          <div style={styles.inventorySection}>
-            <div style={styles.inventoryHeader}>
-              <h2 style={styles.inventoryTitle}>
-                <FontAwesomeIcon icon="clipboard-list" /> Pending Reservations
-              </h2>
-            </div>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.tableHeader}>Drug</th>
-                  <th style={styles.tableHeader}>Quantity</th>
-                  <th style={styles.tableHeader}>Customer</th>
-                  <th style={styles.tableHeader}>Phone</th>
-                  <th style={styles.tableHeader}>Pickup Time</th>
-                  <th style={styles.tableHeader}>Action</th>
-                 </tr>
-              </thead>
-              <tbody>
-                {pendingReservations.map(res => (
-                  <tr key={res.id}>
-                    <td style={styles.tableCell}>
-                      <FontAwesomeIcon icon="pills" style={{ marginRight: '8px', color: '#2ecc71' }} />
-                      {res.drug}
-                    </td>
-                    <td style={styles.tableCell}>{res.quantity}</td>
-                    <td style={styles.tableCell}>
-                      <FontAwesomeIcon icon="user" style={{ marginRight: '8px', color: '#3498db' }} />
-                      {res.customer}
-                    </td>
-                    <td style={styles.tableCell}>
-                      <FontAwesomeIcon icon="phone" style={{ marginRight: '8px', color: '#2ecc71' }} />
-                      {res.phone}
-                    </td>
-                    <td style={styles.tableCell}>
-                      <FontAwesomeIcon icon="clock" style={{ marginRight: '8px', color: '#f39c12' }} />
-                      {res.time}
-                    </td>
-                    <td style={styles.tableCell}>
-                      <button style={styles.actionBtn} onClick={() => handleConfirmReservation(res)}>
-                        <FontAwesomeIcon icon="check-circle" /> Confirm
-                      </button>
-                    </td>
-                  </tr>
+        {/* ===== DRUGS DATABASE SECTION ===== */}
+        {activeSection === 'drugs' && (
+          <div>
+            <div style={styles.mainSection}>
+              <div style={styles.sectionHeader}>
+                <h2 style={styles.sectionTitle}>
+                  <FontAwesomeIcon icon="pills" style={{ color: '#2ecc71' }} /> Drugs Database
+                </h2>
+                <span style={{ color: '#7f8c8d' }}>{filteredDrugs.length} drugs available</span>
+              </div>
+
+              {/* Search and Filter */}
+              <div style={{ marginBottom: '24px' }}>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                  <input
+                    type="text"
+                    placeholder="Search drugs..."
+                    value={drugSearchQuery}
+                    onChange={(e) => setDrugSearchQuery(e.target.value)}
+                    style={{
+                      ...styles.searchInput,
+                      flex: 1,
+                      minWidth: '200px'
+                    }}
+                  />
+                </div>
+
+                {/* Category Tabs */}
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  {drugCategories.map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedDrugCategory(cat)}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                        fontWeight: '500',
+                        background: selectedDrugCategory === cat 
+                          ? 'linear-gradient(135deg, #2ecc71, #27ae60)' 
+                          : '#f8f9fa',
+                        color: selectedDrugCategory === cat ? 'white' : '#7f8c8d',
+                        transition: 'all 0.3s'
+                      }}
+                    >
+                      {cat === 'all' ? 'All' : cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Drugs Grid */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                gap: '16px'
+              }}>
+                {filteredDrugs.map((drug, index) => (
+                  <div
+                    key={index}
+                    onClick={() => setSelectedDrugForAdd(drug)}
+                    style={{
+                      background: 'white',
+                      borderRadius: '14px',
+                      padding: '16px',
+                      cursor: 'pointer',
+                      border: '2px solid #e9ecef',
+                      transition: 'all 0.3s',
+                      textAlign: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#2ecc71';
+                      e.currentTarget.style.transform = 'translateY(-3px)';
+                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(46, 204, 113, 0.2)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#e9ecef';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <div style={{
+                      width: '50px',
+                      height: '50px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto 12px',
+                      fontSize: '1.3rem'
+                    }}>
+                      <FontAwesomeIcon icon="pills" style={{ color: '#27ae60' }} />
+                    </div>
+                    <div style={{
+                      fontSize: '0.95rem',
+                      fontWeight: '600',
+                      color: '#2c3e50',
+                      marginBottom: '6px',
+                      lineHeight: '1.3'
+                    }}>
+                      {drug.name}
+                    </div>
+                    <div style={{
+                      fontSize: '0.8rem',
+                      color: '#95a5a6',
+                      fontStyle: 'italic',
+                      marginBottom: '10px'
+                    }}>
+                      {drug.generic}
+                    </div>
+                    <span style={{
+                      display: 'inline-block',
+                      padding: '4px 10px',
+                      background: '#e8f5e9',
+                      color: '#27ae60',
+                      borderRadius: '10px',
+                      fontSize: '0.75rem',
+                      fontWeight: '600'
+                    }}>
+                      {drug.category}
+                    </span>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </div>
           </div>
         )}
       </div>

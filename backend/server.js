@@ -1,8 +1,5 @@
 // ============================================
-// PHARMACY APP BACKEND - LOGIN & REGISTRATION ONLY
-// ==========
-/// ============================================
-// PHARMACY APP BACKEND - LOGIN & REGISTRATION ONLY
+// PHARMACY APP BACKEND - WITH IMAGE UPLOAD
 // ============================================
 
 const express = require('express');
@@ -10,25 +7,66 @@ const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ============================================
-// CORS CONFIGURATION - FIXED FOR PORT 3001
+// CREATE UPLOADS DIRECTORY IF IT DOESN'T EXIST
+// ============================================
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// ============================================
+// CONFIGURE MULTER FOR IMAGE UPLOADS
+// ============================================
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, 'pharmacy-' + uniqueSuffix + ext);
+    }
+});
+
+const fileFilter = (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+        cb(null, true);
+    } else {
+        cb(new Error('Only image files are allowed (jpeg, jpg, png, gif, webp)'));
+    }
+};
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: fileFilter
+});
+
+// ============================================
+// CORS CONFIGURATION
 // ============================================
 const corsOptions = {
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps, curl, etc)
         if (!origin) return callback(null, true);
         
-        // Allow these origins - INCLUDING HTTPS VARIATIONS
         const allowedOrigins = [
             'http://localhost:3000',
             'http://localhost:3001',
-            'https://localhost:3000',  // Added HTTPS version
-            'https://localhost:3001',   // Added HTTPS version
+            'https://localhost:3000',
+            'https://localhost:3001',
             'http://127.0.0.1:3000',
             'http://127.0.0.1:3001'
         ];
@@ -46,15 +84,11 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Explicit headers for all responses - FIXED to use dynamic origin
+// Explicit headers for all responses
 app.use((req, res, next) => {
     const origin = req.headers.origin;
     
-    // Dynamically set the allowed origin based on request
-    if (origin && (
-        origin.includes('localhost:3000') || 
-        origin.includes('localhost:3001')
-    )) {
+    if (origin && (origin.includes('localhost:3000') || origin.includes('localhost:3001'))) {
         res.header('Access-Control-Allow-Origin', origin);
     }
     
@@ -62,7 +96,6 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Credentials', 'true');
     
-    // Handle preflight OPTIONS requests
     if (req.method === 'OPTIONS') {
         return res.status(200).json({
             message: 'CORS preflight successful',
@@ -75,6 +108,9 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ============================================
 // DATABASE CONNECTION (XAMPP)
@@ -120,7 +156,7 @@ const generateToken = (user) => {
 // ============================================
 app.post('/api/auth/register', async (req, res) => {
     try {
-        console.log('📝 Registration attempt:', req.body.email);
+        console.log(' Registration attempt:', req.body.email);
         
         const { name, email, password, role, phone, pharmacyId } = req.body;
 
@@ -131,7 +167,6 @@ app.post('/api/auth/register', async (req, res) => {
             });
         }
 
-        // Normalize email to lowercase for consistency
         const normalizedEmail = String(email).trim().toLowerCase();
 
         const [existingUsers] = await promisePool.execute(
@@ -147,12 +182,10 @@ app.post('/api/auth/register', async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log('🔐 Password hashed successfully');
+        console.log(' Password hashed successfully');
 
-        // Handle pharmacy assignment for pharmacists
         let pharmacy_id = null;
         if (role === 'pharmacist' && pharmacyId) {
-            // Verify the pharmacy exists
             const [pharmacyCheck] = await promisePool.execute(
                 'SELECT id FROM pharmacies WHERE id = ?',
                 [pharmacyId]
@@ -173,7 +206,7 @@ app.post('/api/auth/register', async (req, res) => {
             [name, normalizedEmail, hashedPassword, role || 'patient', phone || '', pharmacy_id]
         );
 
-        console.log('✅ User inserted with ID:', result.insertId);
+        console.log(' User inserted with ID:', result.insertId);
 
         const [newUser] = await promisePool.execute(
             'SELECT id, name, email, role, phone, pharmacy_id, created_at FROM users WHERE id = ?',
@@ -190,7 +223,7 @@ app.post('/api/auth/register', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Registration error:', error);
+        console.error(' Registration error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error during registration',
@@ -202,12 +235,9 @@ app.post('/api/auth/register', async (req, res) => {
 // ============================================
 // LOGIN ENDPOINT
 // ============================================
-// ============================================
-// LOGIN ENDPOINT (UPDATED)
-// ============================================
 app.post('/api/auth/login', async (req, res) => {
     try {
-        console.log('🔑 Login attempt', { body: req.body });
+        console.log(' Login attempt:', req.body.email);
 
         const { email, password } = req.body;
 
@@ -218,7 +248,6 @@ app.post('/api/auth/login', async (req, res) => {
             });
         }
 
-        // ensure correct format
         const normalizedEmail = String(email).trim().toLowerCase();
 
         const [rows] = await promisePool.execute(
@@ -227,7 +256,7 @@ app.post('/api/auth/login', async (req, res) => {
         );
 
         if (rows.length === 0) {
-            console.log('❌ User not found:', email);
+            console.log(' User not found:', email);
             return res.status(401).json({
                 success: false,
                 message: 'Invalid email or password'
@@ -236,7 +265,7 @@ app.post('/api/auth/login', async (req, res) => {
 
         const user = rows[0];
 
-        console.log('✅ User found:', user.email, 'role:', user.role, 'pharmacy_id:', user.pharmacy_id);
+        console.log(' User found:', user.email, 'role:', user.role, 'pharmacy_id:', user.pharmacy_id);
 
         if (user.status && user.status !== 'active') {
             return res.status(403).json({
@@ -248,36 +277,31 @@ app.post('/api/auth/login', async (req, res) => {
         const isValidPassword = await bcrypt.compare(password, user.password);
 
         if (!isValidPassword) {
-            console.log('❌ Invalid password for:', email);
+            console.log(' Invalid password for:', email);
             return res.status(401).json({
                 success: false,
                 message: 'Invalid email or password'
             });
         }
 
-        console.log('✅ Password valid for:', email);
+        console.log(' Password valid for:', email);
 
         const token = generateToken(user);
         delete user.password;
 
         let pharmacy = null;
 
-        if (user.role === 'pharmacist' && user.pharmacy_id !== null && user.pharmacy_id !== undefined) {
-            const pharmacyIdInt = parseInt(user.pharmacy_id, 10);
-            if (!Number.isNaN(pharmacyIdInt) && isFinite(pharmacyIdInt)) {
-                try {
-                    const [pharmacyRows] = await promisePool.execute(
-                        'SELECT id, name, location, address, phone, hours, manager, status FROM pharmacies WHERE id = ?',
-                        [pharmacyIdInt]
-                    );
-                    if (pharmacyRows.length > 0) {
-                        pharmacy = pharmacyRows[0];
-                    }
-                } catch (lookupError) {
-                    console.error('❌ Error fetching pharmacy for pharmacist:', lookupError);
+        if (user.role === 'pharmacist' && user.pharmacy_id) {
+            try {
+                const [pharmacyRows] = await promisePool.execute(
+                    'SELECT * FROM pharmacies WHERE id = ?',
+                    [user.pharmacy_id]
+                );
+                if (pharmacyRows.length > 0) {
+                    pharmacy = pharmacyRows[0];
                 }
-            } else {
-                console.warn('⚠️ pharmacist has invalid pharmacy_id:', user.pharmacy_id);
+            } catch (lookupError) {
+                console.error(' Error fetching pharmacy for pharmacist:', lookupError);
             }
         }
 
@@ -292,7 +316,7 @@ app.post('/api/auth/login', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Login error:', error);
+        console.error(' Login error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error during login',
@@ -316,7 +340,7 @@ app.get('/api/test', (req, res) => {
 // PHARMACY ENDPOINTS
 // ============================================
 
-// GET ALL PHARMACIES (Public - anyone can view)
+// GET ALL PHARMACIES (Public)
 app.get('/api/pharmacies', async (req, res) => {
     try {
         const [rows] = await promisePool.execute(`
@@ -332,7 +356,7 @@ app.get('/api/pharmacies', async (req, res) => {
             pharmacies: rows
         });
     } catch (error) {
-        console.error('❌ Get pharmacies error:', error);
+        console.error(' Get pharmacies error:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to fetch pharmacies',
@@ -363,7 +387,7 @@ app.get('/api/pharmacies/:id', async (req, res) => {
             pharmacy: rows[0]
         });
     } catch (error) {
-        console.error('❌ Get pharmacy error:', error);
+        console.error(' Get pharmacy error:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to fetch pharmacy',
@@ -372,10 +396,9 @@ app.get('/api/pharmacies/:id', async (req, res) => {
     }
 });
 
-// CREATE PHARMACY (Only for authenticated pharmacists)
-app.post('/api/pharmacies', async (req, res) => {
+// CREATE PHARMACY WITH IMAGE UPLOAD
+app.post('/api/pharmacies', upload.single('image'), async (req, res) => {
     try {
-        // Get token from header
         const token = req.headers.authorization?.split(' ')[1];
         if (!token) {
             return res.status(401).json({
@@ -384,12 +407,10 @@ app.post('/api/pharmacies', async (req, res) => {
             });
         }
 
-        // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'pharmacy_app_secret_key_2024');
         
-        // Get user info
         const [users] = await promisePool.execute(
-            'SELECT id, role FROM users WHERE id = ?',
+            'SELECT id, role, name FROM users WHERE id = ?',
             [decoded.id]
         );
         
@@ -402,7 +423,6 @@ app.post('/api/pharmacies', async (req, res) => {
         
         const user = users[0];
         
-        // Check if user is a pharmacist
         if (user.role !== 'pharmacist') {
             return res.status(403).json({
                 success: false,
@@ -410,7 +430,6 @@ app.post('/api/pharmacies', async (req, res) => {
             });
         }
         
-        // Check if user already has a pharmacy
         const [existingPharmacy] = await promisePool.execute(
             'SELECT id FROM pharmacies WHERE user_id = ?',
             [user.id]
@@ -423,7 +442,7 @@ app.post('/api/pharmacies', async (req, res) => {
             });
         }
         
-        const { name, location, address, phone, hours, manager } = req.body;
+        const { name, location, address, phone, hours, manager, is_on_duty } = req.body;
         
         if (!name || !location) {
             return res.status(400).json({
@@ -432,24 +451,25 @@ app.post('/api/pharmacies', async (req, res) => {
             });
         }
         
+        // Handle image upload
+        let image_url = null;
+        if (req.file) {
+            image_url = `/uploads/${req.file.filename}`;
+        }
+        
         const [result] = await promisePool.execute(
-            `INSERT INTO pharmacies (name, location, address, phone, hours, manager, user_id, status, is_on_duty, image, created_at)
+            `INSERT INTO pharmacies (name, location, address, phone, hours, manager, user_id, status, is_on_duty, image_url, created_at)
              VALUES (?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, NOW())`,
-            [name, location, address || null, phone || null, hours || '8h - 20h', manager || user.name, user.id, req.body.is_on_duty ? 1 : 0, req.body.image || null]
+            [name, location, address || null, phone || null, hours || '8h - 20h', manager || user.name, user.id, is_on_duty === 'true' || is_on_duty === true ? 1 : 0, image_url]
         );
         
-        // Update user's pharmacy_id
         await promisePool.execute(
             'UPDATE users SET pharmacy_id = ? WHERE id = ?',
             [result.insertId, user.id]
         );
         
-        // Fetch and return the complete pharmacy object
         const [pharmacyData] = await promisePool.execute(
-            `SELECT p.*, u.name as manager_name, u.email as manager_email
-             FROM pharmacies p
-             LEFT JOIN users u ON p.user_id = u.id
-             WHERE p.id = ?`,
+            `SELECT * FROM pharmacies WHERE id = ?`,
             [result.insertId]
         );
         
@@ -472,7 +492,6 @@ app.post('/api/pharmacies', async (req, res) => {
 // UPDATE PHARMACY (Only the owner pharmacist can update)
 app.put('/api/pharmacies/:id', async (req, res) => {
     try {
-        // Get token from header
         const token = req.headers.authorization?.split(' ')[1];
         if (!token) {
             return res.status(401).json({
@@ -481,10 +500,8 @@ app.put('/api/pharmacies/:id', async (req, res) => {
             });
         }
 
-        // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'pharmacy_app_secret_key_2024');
         
-        // Check if pharmacy exists and user owns it
         const [pharmacy] = await promisePool.execute(
             'SELECT * FROM pharmacies WHERE id = ?',
             [req.params.id]
@@ -534,7 +551,7 @@ app.put('/api/pharmacies/:id', async (req, res) => {
     }
 });
 
-// GET PHARMACY BY USER ID (for pharmacist dashboard)
+// GET PHARMACY BY USER ID
 app.get('/api/pharmacies/user/:userId', async (req, res) => {
     try {
         const [rows] = await promisePool.execute(
@@ -561,11 +578,17 @@ app.get('/api/pharmacies/:id/inventory', async (req, res) => {
     try {
         const pharmacyId = req.params.id;
         
-        // For now, return empty inventory since inventory table structure isn't defined
-        // This endpoint can be expanded later when inventory management is fully implemented
+        const [rows] = await promisePool.execute(`
+            SELECT i.*, d.name, d.generic_name, d.category, d.manufacturer
+            FROM inventory i
+            JOIN drugs d ON i.drug_id = d.id
+            WHERE i.pharmacy_id = ?
+            ORDER BY i.expiry_date ASC
+        `, [pharmacyId]);
+
         res.json({
             success: true,
-            inventory: []
+            inventory: rows
         });
     } catch (error) {
         console.error('❌ Get inventory error:', error);
@@ -577,17 +600,96 @@ app.get('/api/pharmacies/:id/inventory', async (req, res) => {
     }
 });
 
+// ADD ITEM TO INVENTORY
+app.post('/api/pharmacies/:id/inventory', async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'pharmacy_app_secret_key_2024');
+        const pharmacyId = req.params.id;
+        
+        // Verify pharmacy ownership
+        const [pharmacy] = await promisePool.execute(
+            'SELECT user_id FROM pharmacies WHERE id = ?',
+            [pharmacyId]
+        );
+        
+        if (pharmacy.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Pharmacy not found'
+            });
+        }
+        
+        if (pharmacy[0].user_id !== decoded.id) {
+            return res.status(403).json({
+                success: false,
+                message: 'You can only manage your own pharmacy'
+            });
+        }
+        
+        const { name, generic_name, category, quantity, price, threshold, expiry_date, batch_number } = req.body;
+        
+        // First, check if drug exists in drugs table
+        let [drug] = await promisePool.execute(
+            'SELECT id FROM drugs WHERE name = ?',
+            [name]
+        );
+        
+        let drug_id;
+        if (drug.length > 0) {
+            drug_id = drug[0].id;
+        } else {
+            // Create new drug
+            const [newDrug] = await promisePool.execute(
+                'INSERT INTO drugs (name, generic_name, category) VALUES (?, ?, ?)',
+                [name, generic_name || name, category || 'General']
+            );
+            drug_id = newDrug.insertId;
+        }
+        
+        // Add to inventory
+        const [result] = await promisePool.execute(
+            `INSERT INTO inventory (pharmacy_id, drug_id, quantity, price, threshold, expiry_date, batch_number)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [pharmacyId, drug_id, quantity, price, threshold || 10, expiry_date || null, batch_number || null]
+        );
+        
+        res.status(201).json({
+            success: true,
+            message: 'Drug added to inventory',
+            inventory_id: result.insertId
+        });
+        
+    } catch (error) {
+        console.error('❌ Add to inventory error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to add drug to inventory',
+            error: error.message
+        });
+    }
+});
+
 // ============================================
 // START SERVER
 // ============================================
 app.listen(PORT, async () => {
-    console.log(` Server starting on port ${PORT}`);
-    console.log(` Test: http://localhost:${PORT}/api/test`);
+    console.log(`🚀 Server starting on port ${PORT}`);
+    console.log(`🌐 Test: http://localhost:${PORT}/api/test`);
     
     const dbConnected = await testConnection();
     
     if (dbConnected) {
         console.log(`✅ Login endpoint: http://localhost:${PORT}/api/auth/login`);
         console.log(`✅ Register endpoint: http://localhost:${PORT}/api/auth/register`);
+        console.log(`✅ Pharmacies endpoint: http://localhost:${PORT}/api/pharmacies`);
+        console.log(`✅ Uploads available at: http://localhost:${PORT}/uploads/`);
     }
 });

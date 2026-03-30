@@ -10,7 +10,7 @@ import pharmacyLogo from '../image_logo/pharmacy_logo.png';
 
 const CreatePharmacy = () => {
     const { user, refreshPharmacy } = useAuth();
-    const { pharmacies, setPharmacies, pharmacyInventories, setPharmacyInventories } = usePharmacy();
+    const { setPharmacies, setPharmacyInventories } = usePharmacy();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -24,6 +24,9 @@ const CreatePharmacy = () => {
         manager: user?.name || '',
         is_on_duty: false
     });
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [showImageUpload, setShowImageUpload] = useState(false);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -31,6 +34,25 @@ const CreatePharmacy = () => {
             ...formData,
             [name]: type === 'checkbox' ? checked : value
         });
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        } else {
+            setImageFile(null);
+            setImagePreview(null);
+        }
+    };
+
+    const handleImageToggle = (checked) => {
+        setShowImageUpload(checked);
+        if (!checked) {
+            setImageFile(null);
+            setImagePreview(null);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -52,23 +74,31 @@ const CreatePharmacy = () => {
         }
 
         try {
-            const response = await api.createPharmacy(formData);
+            const dataToSend = new FormData();
+            dataToSend.append('name', formData.name.trim());
+            dataToSend.append('location', formData.location.trim());
+            dataToSend.append('address', formData.address.trim());
+            dataToSend.append('phone', formData.phone.trim());
+            dataToSend.append('hours', formData.hours);
+            dataToSend.append('manager', formData.manager);
+            dataToSend.append('is_on_duty', formData.is_on_duty ? 'true' : 'false');
+
+            if (imageFile) {
+                dataToSend.append('image', imageFile);
+            }
+
+            const response = await api.createPharmacy(dataToSend);
             
             if (response.success) {
-                // Handle the pharmacy object from response
                 const newPharmacy = response.pharmacy;
                 if (newPharmacy) {
-                    // Add to context immediately for instant UI update
                     setPharmacies(prev => [...prev, newPharmacy]);
                     setPharmacyInventories(prev => ({
                         ...prev,
                         [newPharmacy.id]: []
                     }));
-                    
-                    console.log('✅ Pharmacy created and added to context:', newPharmacy);
                 }
                 setSuccess('🎉 Pharmacy registered successfully! Redirecting to dashboard...');
-                // Refresh user context to include pharmacy_id
                 await refreshPharmacy();
                 
                 setTimeout(() => {
@@ -146,19 +176,6 @@ const CreatePharmacy = () => {
             outline: 'none',
             transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
             fontFamily: 'inherit',
-            boxSizing: 'border-box',
-        },
-        textarea: {
-            width: '100%',
-            padding: '14px 18px',
-            border: '2px solid #e0e0e0',
-            borderRadius: '12px',
-            fontSize: '1rem',
-            outline: 'none',
-            transition: 'border-color 0.3s ease',
-            fontFamily: 'inherit',
-            resize: 'vertical',
-            minHeight: '80px',
             boxSizing: 'border-box',
         },
         checkboxGroup: {
@@ -300,7 +317,7 @@ const CreatePharmacy = () => {
                         />
                     </div>
 
-                    {/* Location & Address - Two columns */}
+                    {/* Location & Phone - Two columns */}
                     <div style={styles.row}>
                         <div style={styles.formGroup}>
                             <label style={styles.label}>
@@ -331,15 +348,59 @@ const CreatePharmacy = () => {
 
                     {/* Address */}
                     <div style={styles.formGroup}>
-                        <label style={styles.label}>Full Address</label>
-                        <textarea
+                        <label style={styles.label}>Address</label>
+                        <input
+                            type="text"
                             name="address"
                             value={formData.address}
                             onChange={handleChange}
                             placeholder="e.g., Rue Principale, Carrefour Melen"
-                            style={styles.textarea}
+                            style={styles.input}
                         />
                     </div>
+
+                    {/* Image Upload Toggle */}
+                    <div style={styles.formGroup}>
+                        <div style={styles.checkboxGroup}>
+                            <input
+                                type="checkbox"
+                                checked={showImageUpload}
+                                onChange={(e) => handleImageToggle(e.target.checked)}
+                                style={styles.checkbox}
+                                id="showImageUpload"
+                            />
+                            <label htmlFor="showImageUpload" style={styles.checkboxLabel}>
+                                Add pharmacy photo (optional)
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Image Upload - Only show if toggled */}
+                    {showImageUpload && (
+                        <div style={styles.formGroup}>
+                            <label style={styles.label}>Pharmacy Image</label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                style={styles.input}
+                            />
+                            {imagePreview && (
+                                <img
+                                    src={imagePreview}
+                                    alt="Pharmacy preview"
+                                    style={{
+                                        marginTop: '12px',
+                                        width: '100%',
+                                        maxHeight: '240px',
+                                        objectFit: 'cover',
+                                        borderRadius: '12px',
+                                        border: '1px solid #e0e0e0'
+                                    }}
+                                />
+                            )}
+                        </div>
+                    )}
 
                     {/* Hours & Manager - Two columns */}
                     <div style={styles.row}>

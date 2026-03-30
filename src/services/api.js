@@ -93,10 +93,18 @@ const api = {
     // Create a new pharmacy (only for pharmacists)
     createPharmacy: async (pharmacyData) => {
         try {
+            const isFormData = pharmacyData instanceof FormData;
+            const headers = api.getHeaders();
+
+            // If we are sending FormData, browser will set Content-Type with boundary automatically
+            if (isFormData) {
+                delete headers['Content-Type'];
+            }
+
             const response = await fetch(`${API_BASE_URL}/pharmacies`, {
                 method: 'POST',
-                headers: api.getHeaders(),
-                body: JSON.stringify(pharmacyData)
+                headers,
+                body: isFormData ? pharmacyData : JSON.stringify(pharmacyData)
             });
             return await response.json();
         } catch (error) {

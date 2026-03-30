@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const DrugTable = ({ drugs, onEdit, onDelete, onReorder }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
@@ -325,7 +326,8 @@ const DrugTable = ({ drugs, onEdit, onDelete, onReorder }) => {
                     color: new Date(drug.expiryDate) < new Date() ? '#e74c3c' : '#2c3e50'
                   }}>
                     {drug.expiryDate}
-                    {new Date(drug.expiryDate) < new Date() && ' ⚠️'}
+                    {new Date(drug.expiryDate) < new Date() && ' '}
+                    {new Date(drug.expiryDate) < new Date() && <FontAwesomeIcon icon="exclamation-triangle" style={{ color: '#e74c3c' }} />}
                   </span>
                 </td>
                 <td style={styles.td}>
